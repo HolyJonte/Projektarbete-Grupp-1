@@ -147,6 +147,10 @@ except Exception as e:
 # -------- TEST 3: Valideringsfel när fält lämnas tomma --------
 
 try:
+
+    driver.refresh()
+    time.sleep(2)
+
     wait_and_click("//button[contains(text(), 'Nästa')]")
 
     error_message = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "alert-danger")))

@@ -1,5 +1,7 @@
 import os
 import time
+import platform
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -12,7 +14,15 @@ from webdriver_manager.chrome import ChromeDriverManager
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service)
 
-driver.get("http://127.0.0.1:5500/")
+# Identifiera operativsystemet
+if platform.system() == "Darwin":  # MacOS
+    base_url = "http://127.0.0.1:5501/index.html"
+else:  # Windows (och ev. Linux)
+    base_url = "http://127.0.0.1:5500/index.html"
+
+# Använd rätt URL i Selenium
+driver.get(base_url)
+
 
 
 # Vänta tills sidan har laddats

@@ -28,7 +28,16 @@ driver.get(base_url)
 # Vänta tills sidan har laddats
 wait = WebDriverWait(driver, 10)
 
+# -------- Klicka på knappen "Boka Service" --------
+try:
+    book_service_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='app']/div/div/div[1]/a[1]")))
+    book_service_button.click()  # Klicka på knappen
+    print("✅ Klickade på knappen 'Boka Service'")
+except Exception as e:
+    print("❌ Misslyckades att klicka på knappen 'Boka Service' -", e)
+
 # -------- TEST 1: Valideringsfel när fält lämnas tomma --------
+
 try:
     next_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Nästa')]")))
     next_button.click()

@@ -12,12 +12,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service)
 
-# Hämta index.html och skriv ut filvägen för debugging
-file_path = os.path.abspath("../index.html")
-print(f"Öppnar fil: file:///{file_path}")
+driver.get("http://127.0.0.1:5500/")
 
-# Öppna sidan
-driver.get(f"file:///{file_path}")
 
 # Vänta tills sidan har laddats
 wait = WebDriverWait(driver, 10)

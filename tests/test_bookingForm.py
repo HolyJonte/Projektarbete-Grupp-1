@@ -30,7 +30,10 @@ driver.get(base_url)
 # Vänta tills sidan har laddats
 wait = WebDriverWait(driver, 10)
 
-# ---------- FUNKTIONER FÖR ATT GÖRA TESTET MÄNSKLIGARE ----------
+# =============================================================================
+# ---------- FUNKTIONER FÖR ATT GÖRA TESTET VISBART FÖR REDOVISNING ----------
+# =============================================================================
+
 def wait_and_click(xpath, wait_time=1):
     """Flytta musen till knappen och klicka"""
     button = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -43,15 +46,18 @@ def slow_typing(element, text, delay=0.2):
         element.send_keys(char)
         time.sleep(delay)
 
-# -------- Klicka på knappen "Boka Service" --------
-try:
-    wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
-    print("✅ Klickade på knappen 'Boka Service'")
-except Exception as e:
-    print("❌ Misslyckades att klicka på knappen 'Boka Service' -", e)
 
+# =============================================================================
 # -------- TEST 1: Fyll i formuläret och skicka bokning --------
+# =============================================================================
 def test1():
+    # -------- Klicka på knappen "Boka Service" --------
+    try:
+        wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
+        print("✅ Klickade på knappen 'Boka Service'")
+    except Exception as e:
+        print("❌ Misslyckades att klicka på knappen 'Boka Service' -", e)
+
     try:
         car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
         slow_typing(car_reg_input, "ABC123")  # Skriver långsamt
@@ -109,13 +115,14 @@ def test1():
 
     except Exception as e:
         print("❌ Test 1: Misslyckades -", e)
-
+# =============================================================================
 # -------- TEST 2: Kontrollera att bokade tider blockeras --------
+# =============================================================================
 def test2():
-    try:
-        driver.refresh()
-        time.sleep(2)
+    driver.get(base_url)
+    time.sleep(2)
 
+    try:
         wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
 
         # Fyll i registreringsnummer igen
@@ -166,30 +173,18 @@ def test2():
     except Exception as e:
         print("❌ Test 2: Misslyckades -", e)
 
+# =============================================================================
+# -------- TEST 3: Felhantering av registreringsnummer --------
+# =============================================================================
 def test3():
+    driver.get(base_url)
+    time.sleep(2)
+
     try:
-        time.sleep(2)
-
-        # 🛑 **Steg 1: Klicka på 'Nästa'**
-        try:
-            wait_and_click("//button[contains(text(), 'Nästa')]")
-            print("✅ Klickade på Nästa")
-        except Exception as e:
-            print(f"❌ Misslyckades att klicka på Nästa - Fel: {e}")
-            return
-
-        # 🛑 **Steg 2: Klicka på Service-länken**
-        try:
-            service_link = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Boka Service')]")))
-            service_link.click()
-            print("✅ Klickade på Service-länk")
-        except Exception as e:
-            print(f"❌ Service-länken kunde inte klickas - Fel: {e}")
-            print(f"🔍 HTML vid felet: {driver.page_source}")
-            return
-
+        
         # 🛑 **Test 3A: Fältet är tomt**
         try:
+            wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
             wait_and_click("//button[contains(text(), 'Nästa')]")
             error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
             assert "Registreringsnummer är obligatoriskt." in error_message.text
@@ -214,7 +209,7 @@ def test3():
                 # Rensa fältet HELT
                 car_reg_input.send_keys(Keys.CONTROL + "a", Keys.DELETE)
                 time.sleep(1)  # Ge sidan tid att registrera rensning
-                
+
                 # Skriv in regnummer
                 slow_typing(car_reg_input, reg)
                 time.sleep(1)
@@ -245,12 +240,109 @@ def test3():
     except Exception as e:
         print("❌ Test 3: Misslyckades -", e)
 
+# =============================================================================
+# -------- TEST 4: Felhantering av tjänstval --------
+# =============================================================================
+def test4():
+    driver.get(base_url)
+    time.sleep(2)
 
+    try:
+        # 🛑 **Steg 1: Klicka på "Boka Service" och fyll i registreringsnummer**
+        wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
+        car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
+        slow_typing(car_reg_input, "ABC123")
+        wait_and_click("//button[contains(text(), 'Nästa')]")
+
+        # 🛑 **Steg 2: Försök gå vidare utan att välja en tjänst**
+        wait_and_click("//button[contains(text(), 'Nästa')]")
+
+        # Vänta på felmeddelande
+        error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
+        assert "Välj en tjänst." in error_message.text
+        print("✅ Test 4: Felmeddelande visas korrekt när ingen tjänst väljs")
+
+    except Exception as e:
+        print("❌ Test 4: Misslyckades -", e)
+
+    finally:
+        # **Ladda om sidan så nästa test startar korrekt**
+        driver.refresh()
+        time.sleep(2)
+
+# =============================================================================
+# -------- TEST 5: Felhantering av kontaktuppgifter --------
+# =============================================================================
+def test5():
+    driver.get(base_url)
+    time.sleep(2)
+
+    try:
+        # 🛑 **Steg 1: Klicka på "Boka Service" och fyll i registreringsnummer**
+        wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
+        car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
+        slow_typing(car_reg_input, "ABC123")
+        wait_and_click("//button[contains(text(), 'Nästa')]")
+
+        # 🛑 **Steg 2: Välj en tjänst**
+        service_select = wait.until(EC.presence_of_element_located((By.ID, "serviceType")))
+        service_select.send_keys("Oljebyte")
+        wait_and_click("//button[contains(text(), 'Nästa')]")
+
+        # 🛑 **Steg 3: Välj en ledig tid i kalendern**
+        wait.until(EC.visibility_of_element_located((By.ID, "week-calendar")))
+        available_dates = driver.find_elements(By.XPATH, "//td[not(contains(@class, 'bg-danger'))]")
+        if available_dates:
+            actions.move_to_element(available_dates[0]).click().perform()
+            time.sleep(1)
+
+        available_times = driver.find_elements(By.XPATH, "//td[not(contains(@class, 'bg-danger'))]")
+        if available_times:
+            actions.move_to_element(available_times[0]).click().perform()
+            time.sleep(1)
+
+        wait_and_click("//button[contains(text(), 'Nästa')]")
+
+        # 🛑 **Steg 4A: Försök bekräfta med tomma fält**
+        wait_and_click("//button[contains(text(), 'Bekräfta')]")
+        error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
+        assert "Alla fält måste fyllas i." in error_message.text
+        print("✅ Test 5A: Felmeddelande visas korrekt vid tomma fält på Steg 4")
+
+        # 🛑 **Steg 4B: Fyll i namn & telefon, men ange ogiltig e-post**
+        name_input = wait.until(EC.presence_of_element_located((By.ID, "Namn")))
+        phone_input = wait.until(EC.presence_of_element_located((By.ID, "Telnr")))
+        email_input = wait.until(EC.presence_of_element_located((By.ID, "email")))
+
+        slow_typing(name_input, "Test Person")
+        slow_typing(phone_input, "0701234567")
+        slow_typing(email_input, "testmail.com")  # Ogiltig e-post
+
+        wait_and_click("//button[contains(text(), 'Bekräfta')]")
+
+        # Vänta på felmeddelande för ogiltig e-post
+        error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
+        assert "Ogiltig e-postadress." in error_message.text
+        print("✅ Test 5B: Felmeddelande visas korrekt vid ogiltig e-postadress")
+
+    except Exception as e:
+        print("❌ Test 5: Misslyckades -", e)
+
+    finally:
+        # **Ladda om sidan så nästa test startar korrekt**
+        driver.refresh()
+        time.sleep(2)
+
+# =============================================================================
 # ---------- KÖR TESTERNA ----------
+# =============================================================================
 
 RUN_TEST_1 = False
 RUN_TEST_2 = False
 RUN_TEST_3 = True
+RUN_TEST_4 = False
+RUN_TEST_5 = False
+
 
 if __name__ == "__main__":
     if RUN_TEST_1:
@@ -261,5 +353,11 @@ if __name__ == "__main__":
 
     if RUN_TEST_3:
         test3()
+
+    if RUN_TEST_4:
+        test4()
+
+    if RUN_TEST_5:
+        test5()
 
 driver.quit()

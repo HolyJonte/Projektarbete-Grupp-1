@@ -111,7 +111,6 @@ except Exception as e:
 
 # -------- TEST 2: Kontrollera att bokade tider blockeras --------
 
-
 try:
     driver.refresh()
     time.sleep(2)
@@ -141,17 +140,72 @@ try:
     else:
         print("❌ Test 2: Inga bokade tider hittades!")
 
+    # Fortsätt boka en ny ledig tid
+    print("🔄 Försöker boka en annan tillgänglig tid...")
+    available_times = driver.find_elements(By.XPATH, "//td[not(contains(@class, 'bg-danger'))]")
+
+    if available_times:
+        actions.move_to_element(available_times[0]).click().perform()
+        time.sleep(1)
+        wait_and_click("//button[contains(text(), 'Nästa')]")
+
+        # Klicka på bekräfta-knappen
+        confirm_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Bekräfta')]")))
+        confirm_button.click()
+
+        # Vänta på bekräftelsemodal
+        confirmation_modal = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "modal-content")))
+        time.sleep(3)
+        assert "Bokningsbekräftelse" in confirmation_modal.text
+        print("✅ Ny bokning genomförd och bekräftelsemodal visas")
+
+    else:
+        print("❌ Ingen ny ledig tid att boka!")
+
 except Exception as e:
     print("❌ Test 2: Misslyckades -", e)
 
-# -------- TEST 3: Valideringsfel när fält lämnas tomma --------
+# -------- TEST 3: Valideringsfel/Inmatningsfel från användare --------
 
 try:
-    wait_and_click("//button[contains(text(), 'Nästa')]")
+    driver.refresh()
+    time.sleep(2)
 
+    wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
+
+    # 🛑 **Test 3A: Fältet är tomt**
+    wait_and_click("//button[contains(text(), 'Nästa')]")
     error_message = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "alert-danger")))
     assert "Registreringsnummer är obligatoriskt." in error_message.text
-    print("✅ Test 3: Valideringsfel fungerar korrekt")
+    print("✅ Test 3A: Felmeddelande visas när fältet är tomt")
+
+    # 🛑 **Test 3B: Inmatning med små bokstäver → Ska automatiskt bli versaler**
+    car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
+    slow_typing(car_reg_input, "abc123")
+    assert car_reg_input.get_attribute("value") == "ABC123"
+    print("✅ Test 3B: Små bokstäver konverteras till versaler")
+
+    # 🛑 **Test 3C: Ogiltiga registreringsnummer (specialtecken, för kort/långt)**
+    invalid_reg_numbers = ["123ABC", "A!C123", "ABCD123", "A23", "12345"]
+
+    for reg in invalid_reg_numbers:
+        car_reg_input.clear()
+        slow_typing(car_reg_input, reg)
+        wait_and_click("//button[contains(text(), 'Nästa')]")
+
+        error_message = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "alert-danger")))
+        assert "Ogiltigt registreringsnummer." in error_message.text
+        print(f"✅ Test 3C: Ogiltigt reg.nr '{reg}' ger rätt felmeddelande")
+
+    # ✅ **Test 3D: Korrekt registreringsnummer accepteras**
+    car_reg_input.clear()
+    slow_typing(car_reg_input, "ABC123")
+    wait_and_click("//button[contains(text(), 'Nästa')]")
+
+    # Kontrollera att vi gått vidare till nästa steg
+    time.sleep(1)
+    assert "Tjänst" in driver.page_source  # Kontrollera att vi har kommit till tjänstevalet
+    print("✅ Test 3D: Korrekt registreringsnummer accepterades och vi gick vidare!")
 
 except Exception as e:
     print("❌ Test 3: Misslyckades -", e)

@@ -168,8 +168,11 @@ except Exception as e:
 # -------- TEST 3: Valideringsfel/Inmatningsfel från användare --------
 
 try:
+
     driver.refresh()
     time.sleep(2)
+
+    wait_and_click("//button[contains(text(), 'Nästa')]")
 
     wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
 

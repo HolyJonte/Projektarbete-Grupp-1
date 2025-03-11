@@ -370,3 +370,5 @@ if __name__ == "__main__":
     # Stänga ner webbläsaren
     time.sleep(1)
     driver.quit()
+
+# Jonte gör en kommentar i en branch här

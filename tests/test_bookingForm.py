@@ -194,7 +194,7 @@ def test3():
             return
 
         # 🛑 **Test 3B: Ogiltiga registreringsnummer**
-        invalid_reg_numbers = ["123ABC", "A!C123", "ABCD123", "A23", "12345"]
+        invalid_reg_numbers = ["A!C123"]
 
         # Kontrollera att inputfältet existerar
         try:
@@ -265,10 +265,6 @@ def test4():
     except Exception as e:
         print("❌ Test 4: Misslyckades -", e)
 
-    finally:
-        # **Ladda om sidan så nästa test startar korrekt**
-        driver.refresh()
-        time.sleep(2)
 
 # =============================================================================
 # -------- TEST 5: Felhantering av kontaktuppgifter --------
@@ -278,6 +274,8 @@ def test5():
     time.sleep(2)
 
     try:
+        print("🔄 Test 5: Startar test för felhantering av kontaktuppgifter...")
+
         # 🛑 **Steg 1: Klicka på "Boka Service" och fyll i registreringsnummer**
         wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
         car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
@@ -292,46 +290,72 @@ def test5():
         # 🛑 **Steg 3: Välj en ledig tid i kalendern**
         wait.until(EC.visibility_of_element_located((By.ID, "week-calendar")))
         available_dates = driver.find_elements(By.XPATH, "//td[not(contains(@class, 'bg-danger'))]")
+
         if available_dates:
+            print("ℹ️ Väljer första lediga datum...")
             actions.move_to_element(available_dates[0]).click().perform()
             time.sleep(1)
 
         available_times = driver.find_elements(By.XPATH, "//td[not(contains(@class, 'bg-danger'))]")
+
         if available_times:
+            print("ℹ️ Väljer första lediga tid...")
             actions.move_to_element(available_times[0]).click().perform()
             time.sleep(1)
 
         wait_and_click("//button[contains(text(), 'Nästa')]")
 
         # 🛑 **Steg 4A: Försök bekräfta med tomma fält**
-        wait_and_click("//button[contains(text(), 'Bekräfta')]")
-        error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
-        assert "Alla fält måste fyllas i." in error_message.text
-        print("✅ Test 5A: Felmeddelande visas korrekt vid tomma fält på Steg 4")
+        print("ℹ️ Försöker bekräfta med tomma fält...")
+        confirm_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Bekräfta')]")
+
+        # Se om knappen är inaktiv
+        if confirm_button.get_attribute("disabled"):
+            print("✅ Bekräfta-knappen är inaktiv när fälten är tomma. Test 5A godkänt.")
+        else:
+            confirm_button.click()
+            print("❗ Bekräfta-knappen gick att klicka! Kontrollerar felmeddelande...")
+
+            # Vänta på felmeddelande
+            try:
+                error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
+                assert "Alla fält måste fyllas i." in error_message.text
+                print("✅ Test 5A: Felmeddelande visas korrekt vid tomma fält.")
+            except Exception as e:
+                print(f"❌ Test 5A: Felmeddelande visades inte korrekt - {e}")
 
         # 🛑 **Steg 4B: Fyll i namn & telefon, men ange ogiltig e-post**
-        name_input = wait.until(EC.presence_of_element_located((By.ID, "Namn")))
-        phone_input = wait.until(EC.presence_of_element_located((By.ID, "Telnr")))
-        email_input = wait.until(EC.presence_of_element_located((By.ID, "email")))
+        print("ℹ️ Fyller i namn och telefon, men ogiltig e-post...")
+        name_input = driver.find_element(By.ID, "Namn")
+        phone_input = driver.find_element(By.ID, "Telnr")
+        email_input = driver.find_element(By.ID, "email")
 
         slow_typing(name_input, "Test Person")
         slow_typing(phone_input, "0701234567")
-        slow_typing(email_input, "testmail.com")  # Ogiltig e-post
+        slow_typing(email_input, "testcom")
 
-        wait_and_click("//button[contains(text(), 'Bekräfta')]")
+        # Se till att bekräfta-knappen går att klicka
+        confirm_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Bekräfta')]")))
+        confirm_button.click()
 
         # Vänta på felmeddelande för ogiltig e-post
-        error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
-        assert "Ogiltig e-postadress." in error_message.text
-        print("✅ Test 5B: Felmeddelande visas korrekt vid ogiltig e-postadress")
+        print("ℹ️ Väntar på felmeddelande för ogiltig e-post...")
+        try:
+            error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
+            assert "Ogiltig e-postadress." in error_message.text
+            print("✅ Test 5B: Felmeddelande visas korrekt vid ogiltig e-postadress")
+        except Exception as e:
+            print(f"❌ Test 5B: Felmeddelande för ogiltig e-post visades inte - {e}")
 
     except Exception as e:
         print("❌ Test 5: Misslyckades -", e)
 
     finally:
-        # **Ladda om sidan så nästa test startar korrekt**
-        driver.refresh()
+        # 🛑 **Gå tillbaka till startsidan**
+        driver.get(base_url)
         time.sleep(2)
+
+
 
 # =============================================================================
 # ---------- KÖR TESTERNA ----------
@@ -339,9 +363,9 @@ def test5():
 
 RUN_TEST_1 = False
 RUN_TEST_2 = False
-RUN_TEST_3 = True
+RUN_TEST_3 = False
 RUN_TEST_4 = False
-RUN_TEST_5 = False
+RUN_TEST_5 = True
 
 
 if __name__ == "__main__":

@@ -166,48 +166,85 @@ def test2():
     except Exception as e:
         print("❌ Test 2: Misslyckades -", e)
 
-# -------- TEST 3: Valideringsfel/Inmatningsfel från användare --------
 def test3():
     try:
-
-        driver.refresh()
         time.sleep(2)
 
-        wait_and_click("//button[contains(text(), 'Nästa')]")
+        # 🛑 **Steg 1: Klicka på 'Nästa'**
+        try:
+            wait_and_click("//button[contains(text(), 'Nästa')]")
+            print("✅ Klickade på Nästa")
+        except Exception as e:
+            print(f"❌ Misslyckades att klicka på Nästa - Fel: {e}")
+            return
 
-        wait_and_click("//*[@id='app']/div/div/div[1]/a[1]")
+        # 🛑 **Steg 2: Klicka på Service-länken**
+        try:
+            service_link = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Boka Service')]")))
+            service_link.click()
+            print("✅ Klickade på Service-länk")
+        except Exception as e:
+            print(f"❌ Service-länken kunde inte klickas - Fel: {e}")
+            print(f"🔍 HTML vid felet: {driver.page_source}")
+            return
 
         # 🛑 **Test 3A: Fältet är tomt**
-        wait_and_click("//button[contains(text(), 'Nästa')]")
-        error_message = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "alert-danger")))
-        assert "Registreringsnummer är obligatoriskt." in error_message.text
-        print("✅ Test 3A: Felmeddelande visas när fältet är tomt")
+        try:
+            wait_and_click("//button[contains(text(), 'Nästa')]")
+            error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
+            assert "Registreringsnummer är obligatoriskt." in error_message.text
+            print("✅ Test 3A: Felmeddelande visas när fältet är tomt")
+        except Exception as e:
+            print(f"❌ Test 3A misslyckades - Fel: {e}")
+            return
 
-
-        # 🛑 **Test 3C: Ogiltiga registreringsnummer (specialtecken, för kort/långt)**
+        # 🛑 **Test 3B: Ogiltiga registreringsnummer**
         invalid_reg_numbers = ["123ABC", "A!C123", "ABCD123", "A23", "12345"]
 
+        # Kontrollera att inputfältet existerar
+        try:
+            car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
+            print("✅ Hittade inputfältet")
+        except Exception as e:
+            print(f"❌ Kunde inte hitta inputfältet! Fel: {e}")
+            return
+
         for reg in invalid_reg_numbers:
-            car_reg_input.clear()
-            slow_typing(car_reg_input, reg)
-            wait_and_click("//button[contains(text(), 'Nästa')]")
+            try:
+                # Rensa fältet HELT
+                car_reg_input.send_keys(Keys.CONTROL + "a", Keys.DELETE)
+                time.sleep(1)  # Ge sidan tid att registrera rensning
+                
+                # Skriv in regnummer
+                slow_typing(car_reg_input, reg)
+                time.sleep(1)
 
-            error_message = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "alert-danger")))
-            assert "Ogiltigt registreringsnummer." in error_message.text
-            print(f"✅ Test 3C: Ogiltigt reg.nr '{reg}' ger rätt felmeddelande")
+                # Klicka på "Nästa"
+                wait_and_click("//button[contains(text(), 'Nästa')]")
+                time.sleep(2)  # Vänta på felet
 
-        # ✅ **Test 3D: Korrekt registreringsnummer accepteras**
-        car_reg_input.clear()
-        slow_typing(car_reg_input, "ABC123")
-        wait_and_click("//button[contains(text(), 'Nästa')]")
+                # 🛑 **Vänta på att felmeddelandet dyker upp**
+                try:
+                    error_message = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "alert-danger")))
+                    print(f"🔍 Faktiskt felmeddelande för '{reg}': {error_message.text}")
+                    assert "Ogiltigt registreringsnummer." in error_message.text
+                    print(f"✅ Test 3B: Ogiltigt reg.nr '{reg}' ger rätt felmeddelande")
+                except Exception:
+                    print(f"❌ Test 3B: Ingen felruta för '{reg}'! Testet misslyckas.")
+                    assert False, f"Inget felmeddelande visades för ogiltigt registreringsnummer '{reg}'!"
 
-        # Kontrollera att vi gått vidare till nästa steg
+            except Exception as e:
+                print(f"❌ Misslyckades med '{reg}' - Fel: {e}")
+                return
+
+        # 🛑 **Test 3D: Kontrollera att vi gått vidare till nästa steg**
         time.sleep(1)
-        assert "Tjänst" in driver.page_source  # Kontrollera att vi har kommit till tjänstevalet
+        assert "Tjänst" in driver.page_source
         print("✅ Test 3D: Korrekt registreringsnummer accepterades och vi gick vidare!")
 
     except Exception as e:
         print("❌ Test 3: Misslyckades -", e)
+
 
 # ---------- KÖR TESTERNA ----------
 

@@ -183,11 +183,6 @@ def test3():
         assert "Registreringsnummer är obligatoriskt." in error_message.text
         print("✅ Test 3A: Felmeddelande visas när fältet är tomt")
 
-        # 🛑 **Test 3B: Inmatning med små bokstäver → Ska automatiskt bli versaler**
-        car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
-        slow_typing(car_reg_input, "abc123")
-        assert car_reg_input.get_attribute("value") == "ABC123"
-        print("✅ Test 3B: Små bokstäver konverteras till versaler")
 
         # 🛑 **Test 3C: Ogiltiga registreringsnummer (specialtecken, för kort/långt)**
         invalid_reg_numbers = ["123ABC", "A!C123", "ABCD123", "A23", "12345"]

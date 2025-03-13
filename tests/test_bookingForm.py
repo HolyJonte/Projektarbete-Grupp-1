@@ -52,7 +52,7 @@ def test1():
         # Fyll i registreringsnummer
         car_reg_input = wait.until(EC.presence_of_element_located((By.ID, "carRegistration")))
         # Skriver långsamt in registreringsnumret
-        slow_typing(car_reg_input, "ABC123")  
+        slow_typing(car_reg_input, "ABC123")
 
         # Klicka på "Nästa" knappen
         wait_and_click("//button[contains(text(), 'Nästa')]")
@@ -134,9 +134,6 @@ def test2():
 
         # Vänta tills kalendern syns i steg 3
         wait.until(EC.visibility_of_element_located((By.ID, "week-calendar")))
-
-        # Hämta alla bokade tider (blockerade med bg-danger)
-        booked_time_elements = driver.find_elements(By.XPATH, "//td[contains(@class, 'bg-danger')]")
 
         # Fortsätt boka en ny tid
         available_times = driver.find_elements(By.XPATH, "//td[not(contains(@class, 'bg-danger'))]")
@@ -366,5 +363,3 @@ if __name__ == "__main__":
     # Stänga ner webbläsaren
     time.sleep(1)
     driver.quit()
-
-# Jonte gör en kommentar i en branch här

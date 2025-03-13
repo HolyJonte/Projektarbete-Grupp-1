@@ -1,5 +1,4 @@
 import time
-import platform
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -16,11 +15,8 @@ driver = webdriver.Chrome(service=service)
 # Skapa ActionChains (för att simulera musrörelser och klick i Selenium)
 actions = ActionChains(driver)
 
-# Identifiera operativsystemet och använd rätt lokal URL
-if platform.system() == "Darwin":  # MacOS
-    base_url = "http://127.0.0.1:5501/index.html"
-else:  # Windows etc.
-    base_url = "http://127.0.0.1:5500/index.html"
+# Base URL för bokningssidan, byt portnummer om det behövs
+base_url = "http://127.0.0.1:5500/index.html"
 
 # Öppna bokningssidan med tidigare inställd URL
 driver.get(base_url)

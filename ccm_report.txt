@@ -1,0 +1,25 @@
+================================================
+  NLOC    CCN   token  PARAM  length  location  
+------------------------------------------------
+       3      1      6      0       3 this.getBookedTimes@24-26@components/bookingForm.js
+       2      2     14      0       2 (anonymous)@43-44@components/bookingForm.js
+      12      3     63      0      20 availableTimes@34-53@components/bookingForm.js
+      13      9    109      0      19 nextStep@62-80@components/bookingForm.js
+       5      2     19      0       5 prevStep@83-87@components/bookingForm.js
+      18      3    124      0      30 submitBooking@90-119@components/bookingForm.js
+       4      1     19      0       4 closeModal@122-125@components/bookingForm.js
+       4      2     34      0       6 getBookedTimes@128-133@components/bookingForm.js
+       3      1     11      1       3 handleDateSelection@136-138@components/bookingForm.js
+       3      1     11      1       3 handleTimeSelection@141-143@components/bookingForm.js
+1 file analyzed.
+==============================================================
+NLOC    Avg.NLOC  AvgCCN  Avg.token  function_cnt    file
+--------------------------------------------------------------
+    263       6.7     2.5       41.0        10     components/bookingForm.js
+
+===============================================================================================================
+No thresholds exceeded (cyclomatic_complexity > 15 or length > 1000 or nloc > 1000000 or parameter_count > 100)
+==========================================================================================
+Total nloc   Avg.NLOC  AvgCCN  Avg.token   Fun Cnt  Warning cnt   Fun Rt   nloc Rt
+------------------------------------------------------------------------------------------
+       263       6.7     2.5       41.0       10            0      0.00    0.00

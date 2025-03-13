@@ -168,7 +168,7 @@ def test2():
         print("✅ Test 2: Genomfördes korrekt!", e)
 
 # =============================================================================
-# -------- TEST 3: Felhantering av registreringsnummer --------
+# --------- TEST 3: Felhantering av registreringsnummer ---------
 # =============================================================================
 def test3():
     driver.get(base_url)
